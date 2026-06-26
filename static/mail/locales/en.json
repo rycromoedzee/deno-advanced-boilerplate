@@ -1,0 +1,20 @@
+{
+  "footer.text": "You have received this email because a password reset was requested for your Moedzee account.",
+  "footer.unsubscribe": "Unscubscribe",
+  "footer.unsubscribe-text": "from all future emails.",
+  "sign-up.subject": "Account Setup - Welcome to Moedzee",
+  "sign-up.header": "Welcome to Moedzee",
+  "sign-up.setup-account": "Setup account",
+  "password-reset.subject": "Reset your password",
+  "password-reset.header": "Reset Your Password",
+  "password-reset.body": "We received a request to reset your password. Click the button below to create a new password.",
+  "password-reset.button": "Reset password",
+  "password-reset.recovery-phrase-required": "You will need your recovery phrase to complete recovery.",
+  "password-reset.link-expiry": "If you didn't request this password reset, please ignore this email. This link will expire in 15 minutes.",
+  "sign-up.invited-to-account": "has invited you to join",
+  "magic-link.subject": "Your sign-in link",
+  "magic-link.header": "Sign In to Your Account",
+  "magic-link.body": "We received a request to sign in to your account. Click the button below to complete your sign-in. This link can only be used once.",
+  "magic-link.button": "Sign in",
+  "magic-link.for-reference": "For your reference, your login is"
+}

@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="format-detection" content="date=no">
+  <meta name="format-detection" content="address=no">
+  <meta name="format-detection" content="email=no">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="x-apple-disable-message-reformatting">
+  <title><%= t("sign-up.subject") %></title>
+  <!--[if (gte mso 9)|(IE)]>
+    <xml>
+     <o:OfficeDocumentSettings>
+      <o:AllowPNG/>
+      <o:PixelsPerInch>96</o:PixelsPerInch>
+     </o:OfficeDocumentSettings>
+    </xml>
+    <![endif]-->
+  <style type="text/css">
+    @media only screen and (max-width: 600px) {
+      .feature-icon-cell {
+        display: block !important;
+        margin-right: 0 !important;
+        margin-bottom: 12px !important;
+      }
+      .feature-icon-cell td {
+        text-align: left !important;
+      }
+      .feature-text-cell {
+        display: block !important;
+        max-width: 100% !important;
+      }
+      .feature-row-td {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+        text-align: left !important;
+      }
+    }
+  </style>
+</head>
+
+<body style="margin:0;padding:0;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
+    <tbody>
+      <%- include('../partials/preheader', { preheaderText: t("sign-up.subject") }) %>
+      <%- include('../partials/logo'); %>
+      <tr>
+        <td style="font-size:0;line-height:0;background-color:<%= vars.bgColor %>;padding-left:16px;padding-right:16px;" align="center">
+          <!--[if mso]>
+          <table role="presentation" width="608" border="0" cellspacing="0" cellpadding="0" align="center">
+            <tr>
+              <td align="center">
+          <![endif]-->
+          <table role="presentation" width="608" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:608px;">
+            <tbody>
+              <tr>
+                <td background="assets/hero_lines-color.png" bgcolor="<%= vars.brandColor %>" valign="top" style="background-image:url('assets/hero_lines-color.png'); background-position:50% 0; background-repeat:no-repeat; border-radius: <%= vars.borderRadius %>;">
+                  <!--[if gte mso 9]>
+                  <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:600px;height:320px;">
+                    <v:fill type="frame" src="assets/hero_lines-color.png" color="<%= vars.brandColor %>" />
+                    <v:textbox inset="0,0,0,0">
+                  <![endif]-->
+                  <div style="padding: 32px;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                      <tr>
+                        <td align="center">
+                          <h1 style="font-family:<%= vars.headingFontFamily %>;word-wrap:break-word;font-weight:700;font-size:<%= vars.headingFontSize %>;line-height:41px;color:<%= vars.headingColor %>;margin-top:24px;margin-bottom:16px;"><%= t("sign-up.header") %></h1>
+                          <table role="presentation" align="center" cellspacing="0" cellpadding="0" border="0">
+                            <tbody>
+                              <%- include('../partials/notification-main-icon-sm', {
+                                    imgSrc: 'assets/avatar-fill.gif',
+                                    imgAlt: 'Lock Icon'
+                                  }) %>
+                            </tbody>
+                          </table>
+                          <p style="font-family:<%= vars.fontFamily %>;font-size:<%= vars.bodyFontSize %>;line-height:24px;color:<%= vars.accentColor %>;margin-bottom:0px;"><%= fullName %></p>
+                          <p style="font-family:<%= vars.fontFamily %>;font-size:<%= vars.bodyFontSize %>;line-height:24px;color:<%= vars.mutedColor %>;margin-top:8px"><%= email %></p>
+                        </td>
+                      </tr>
+                    </table>
+                  </div>
+                  <!--[if gte mso 9]>
+                    </v:textbox>
+                  </v:rect>
+                  <![endif]-->
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <!--[if mso]>
+              </td>
+            </tr>
+          </table>
+          <![endif]-->
+        </td>
+      </tr>
+
+
+      <%- include('../partials/footer-separator'); %>
+      <%- include('../partials/footer', { unsubscribeURL: unsubscribeURL }); %>
+    </tbody>
+  </table>
+</body>
+</html>

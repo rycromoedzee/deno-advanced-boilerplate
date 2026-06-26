@@ -1,0 +1,7 @@
+{
+  "magic-link.subject": "Votre lien de connexion",
+  "magic-link.header": "Connectez-vous à votre compte",
+  "magic-link.body": "Nous avons reçu une demande de connexion à votre compte. Cliquez sur le bouton ci-dessous pour finaliser votre connexion. Ce lien ne peut être utilisé qu'une seule fois.",
+  "magic-link.button": "Se connecter",
+  "magic-link.for-reference": "Pour rappel, votre identifiant est"
+}

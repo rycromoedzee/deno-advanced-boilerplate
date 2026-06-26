@@ -1,0 +1,64 @@
+/**
+ * @file config/notification-event-types.ts
+ * @description Notification event types for the notifications table
+ *
+ * These are the `type` column values stored in the `notifications` table.
+ * They are separate from notification_types.id (which controls channel preferences).
+ *
+ * Mapping: NOTIFICATION_TYPE_TO_PREFERENCE_ID maps event type → preference lookup key
+ */
+
+export const NOTIFICATION_EVENT_TYPES = {
+  DOCUMENT_SHARED: "DOCUMENT_SHARED",
+  FOLDER_SHARED: "FOLDER_SHARED",
+
+  // Task management event types
+  TASK_PROJECT_MEMBER_ADDED: "TASK_PROJECT_MEMBER_ADDED",
+  TASK_PROJECT_MEMBER_REMOVED: "TASK_PROJECT_MEMBER_REMOVED",
+  TASK_ITEM_CREATED: "TASK_ITEM_CREATED",
+  TASK_ITEM_ASSIGNED: "TASK_ITEM_ASSIGNED",
+  TASK_ITEM_UNASSIGNED: "TASK_ITEM_UNASSIGNED",
+  TASK_ITEM_STATE_CHANGED: "TASK_ITEM_STATE_CHANGED",
+  TASK_ITEM_PRIORITY_CHANGED: "TASK_ITEM_PRIORITY_CHANGED",
+  TASK_ITEM_DUE_DATE_APPROACHING: "TASK_ITEM_DUE_DATE_APPROACHING",
+  TASK_ITEM_OVERDUE: "TASK_ITEM_OVERDUE",
+  TASK_ITEM_COMMENT_ADDED: "TASK_ITEM_COMMENT_ADDED",
+  TASK_ITEM_MENTIONED: "TASK_ITEM_MENTIONED",
+  TASK_ITEM_RELATION_ADDED: "TASK_ITEM_RELATION_ADDED",
+  TASK_ITEM_COMPLETED: "TASK_ITEM_COMPLETED",
+  TASK_NOTE_UPDATED: "TASK_NOTE_UPDATED",
+  TASK_MILESTONE_COMPLETED: "TASK_MILESTONE_COMPLETED",
+  TASK_CYCLE_STARTED: "TASK_CYCLE_STARTED",
+  TASK_CYCLE_ENDING: "TASK_CYCLE_ENDING",
+  TASK_ITEM_STALE: "TASK_ITEM_STALE",
+} as const;
+
+export type NotificationEventType = typeof NOTIFICATION_EVENT_TYPES[keyof typeof NOTIFICATION_EVENT_TYPES];
+
+/**
+ * Maps notification event types to their corresponding notification_types.id
+ * for preference resolution (inApp/email/push toggles).
+ */
+export const NOTIFICATION_TYPE_TO_PREFERENCE_ID: Record<NotificationEventType, string> = {
+  [NOTIFICATION_EVENT_TYPES.DOCUMENT_SHARED]: "sharing.document.shared",
+  [NOTIFICATION_EVENT_TYPES.FOLDER_SHARED]: "sharing.folder.shared",
+
+  [NOTIFICATION_EVENT_TYPES.TASK_PROJECT_MEMBER_ADDED]: "task-project.member.added",
+  [NOTIFICATION_EVENT_TYPES.TASK_PROJECT_MEMBER_REMOVED]: "task-project.member.removed",
+  [NOTIFICATION_EVENT_TYPES.TASK_ITEM_CREATED]: "task-item.created",
+  [NOTIFICATION_EVENT_TYPES.TASK_ITEM_ASSIGNED]: "task-item.assigned",
+  [NOTIFICATION_EVENT_TYPES.TASK_ITEM_UNASSIGNED]: "task-item.unassigned",
+  [NOTIFICATION_EVENT_TYPES.TASK_ITEM_STATE_CHANGED]: "task-item.state-changed",
+  [NOTIFICATION_EVENT_TYPES.TASK_ITEM_PRIORITY_CHANGED]: "task-item.priority-changed",
+  [NOTIFICATION_EVENT_TYPES.TASK_ITEM_DUE_DATE_APPROACHING]: "task-item.due-date-approaching",
+  [NOTIFICATION_EVENT_TYPES.TASK_ITEM_OVERDUE]: "task-item.overdue",
+  [NOTIFICATION_EVENT_TYPES.TASK_ITEM_COMMENT_ADDED]: "task-item.comment.added",
+  [NOTIFICATION_EVENT_TYPES.TASK_ITEM_MENTIONED]: "task-item.mentioned",
+  [NOTIFICATION_EVENT_TYPES.TASK_ITEM_RELATION_ADDED]: "task-item.relation.added",
+  [NOTIFICATION_EVENT_TYPES.TASK_ITEM_COMPLETED]: "task-item.completed",
+  [NOTIFICATION_EVENT_TYPES.TASK_NOTE_UPDATED]: "task-note.updated",
+  [NOTIFICATION_EVENT_TYPES.TASK_MILESTONE_COMPLETED]: "task-milestone.completed",
+  [NOTIFICATION_EVENT_TYPES.TASK_CYCLE_STARTED]: "task-cycle.started",
+  [NOTIFICATION_EVENT_TYPES.TASK_CYCLE_ENDING]: "task-cycle.ending",
+  [NOTIFICATION_EVENT_TYPES.TASK_ITEM_STALE]: "task-item.stale",
+};

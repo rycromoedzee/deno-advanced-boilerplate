@@ -1,0 +1,134 @@
+/**
+ * @file models/notes/note.model.ts
+ * @description Note model/types
+ */
+import { z } from "@deps";
+
+export const SCHEMA_NOTE_ID = z.string().min(1).openapi({
+  description: "Note ID",
+  example: "abcDEF123_xyz45678901",
+});
+
+export const SchemaNoteApiResponse = z.object({
+  id: z.string(),
+  ownerId: z.string(),
+  ownerName: z.string().nullable().optional(),
+  collectionId: z.string().nullable(),
+  title: z.string(),
+  isArchived: z.boolean(),
+  archivedAt: z.number().nullable(),
+  isPinned: z.boolean(),
+  lastVersionId: z.string().nullable(),
+  metadata: z.unknown().nullable(),
+  createdAt: z.number(),
+  updatedAt: z.number(),
+}).openapi("Note");
+
+export const SchemaNoteCreateRequest = z.object({
+  title: z.string().min(1).max(500),
+  collectionId: z.string().nullable().optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+}).openapi("NoteCreateRequest");
+
+export const SchemaNoteUpdateRequest = z.object({
+  title: z.string().min(1).max(500).optional(),
+  collectionId: z.string().nullable().optional(),
+  isPinned: z.boolean().optional(),
+  metadata: z.record(z.string(), z.unknown()).nullable().optional(),
+}).openapi("NoteUpdateRequest");
+
+export const SchemaNoteListQuery = z.object({
+  collectionId: z.string().optional(),
+  archived: z.enum(["true", "false", "all"]).default("false"),
+  pinned: z.enum(["true", "false", "all"]).default("all"),
+  q: z.string().optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(200).default(50),
+}).openapi("NoteListQuery");
+
+export const SchemaNoteListTag = z.object({
+  name: z.string(),
+  color: z.string().nullable(),
+}).openapi("NoteListTag");
+
+// List items carry extra denormalized fields (author name, collection name, tags)
+// that the shared SchemaNoteApiResponse (used by create/update/archive/restore) does
+// not, so they live on a dedicated list-item schema rather than the shared base.
+export const SchemaNoteListItemApiResponse = SchemaNoteApiResponse.extend({
+  ownerName: z.string().nullable(),
+  collectionName: z.string().nullable(),
+  tags: z.array(SchemaNoteListTag),
+}).openapi("NoteListItem");
+
+export const SchemaNoteListApiResponse = z.object({
+  items: z.array(SchemaNoteListItemApiResponse),
+  pagination: z.object({
+    page: z.number(),
+    limit: z.number(),
+    total: z.number(),
+    totalPages: z.number(),
+    hasNext: z.boolean(),
+    hasPrev: z.boolean(),
+  }),
+}).openapi("NoteListResponse");
+
+export const SchemaNoteEmbeddedLatestVersion = z.object({
+  id: z.string(),
+  body: z.string(),
+  createdAt: z.number(),
+  createdByUserId: z.string(),
+}).openapi("NoteEmbeddedLatestVersion");
+
+export const SchemaNoteEmbeddedTag = z.object({
+  id: z.string(),
+  name: z.string(),
+  color: z.string().nullable(),
+}).openapi("NoteEmbeddedTag");
+
+export const SchemaNoteEmbeddedSharedUser = z.object({
+  userId: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  avatarColor: z.string().nullable(),
+  permissionLevel: z.string(),
+}).openapi("NoteEmbeddedSharedUser");
+
+export const SchemaNoteEmbeddedPermissions = z.object({
+  users: z.array(SchemaNoteEmbeddedSharedUser),
+  myPermissionLevel: z.string(),
+}).openapi("NoteEmbeddedPermissions");
+
+export const SchemaNoteEmbeddedPublicShare = z.object({
+  token: z.string(),
+  url: z.string(),
+  hasPassword: z.boolean(),
+  expiresAt: z.number().nullable(),
+  recipientEmail: z.string().nullable().optional(),
+  createdAt: z.number(),
+}).openapi("NoteEmbeddedPublicShare");
+
+export const SchemaNoteDetailApiResponse = SchemaNoteApiResponse.extend({
+  latestVersion: SchemaNoteEmbeddedLatestVersion.nullable(),
+  tags: z.array(SchemaNoteEmbeddedTag),
+  permissions: SchemaNoteEmbeddedPermissions,
+  publicShares: z.array(SchemaNoteEmbeddedPublicShare),
+  collectionName: z.string().nullable(),
+  collectionDescription: z.string().nullable(),
+  collectionIcon: z.string().nullable(),
+  collectionColor: z.string().nullable(),
+  collectionIsArchived: z.boolean().nullable(),
+}).openapi("NoteDetail");
+
+export type INoteResponse = z.infer<typeof SchemaNoteApiResponse>;
+export type INoteCreateRequest = z.infer<typeof SchemaNoteCreateRequest>;
+export type INoteUpdateRequest = z.infer<typeof SchemaNoteUpdateRequest>;
+export type INoteListQuery = z.infer<typeof SchemaNoteListQuery>;
+export type INoteListTag = z.infer<typeof SchemaNoteListTag>;
+export type INoteListItemResponse = z.infer<typeof SchemaNoteListItemApiResponse>;
+export type INoteListApiResponse = z.infer<typeof SchemaNoteListApiResponse>;
+export type INoteEmbeddedLatestVersion = z.infer<typeof SchemaNoteEmbeddedLatestVersion>;
+export type INoteEmbeddedTag = z.infer<typeof SchemaNoteEmbeddedTag>;
+export type INoteEmbeddedSharedUser = z.infer<typeof SchemaNoteEmbeddedSharedUser>;
+export type INoteEmbeddedPermissions = z.infer<typeof SchemaNoteEmbeddedPermissions>;
+export type INoteEmbeddedPublicShare = z.infer<typeof SchemaNoteEmbeddedPublicShare>;
+export type INoteDetailResponse = z.infer<typeof SchemaNoteDetailApiResponse>;

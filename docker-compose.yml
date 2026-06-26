@@ -1,0 +1,14 @@
+services:
+  api:
+    build: .
+    container_name: deno-boilerplate-api
+    ports:
+      # Matches start.sh / the Dockerfile EXPOSE (55555).
+      - "55555:55555"
+    env_file:
+      # Secrets/config are provided at runtime, never baked into the image.
+      - .env
+    volumes:
+      # Persist the SQLite/libSQL database files across container restarts.
+      - .data:/app/.data
+    restart: unless-stopped

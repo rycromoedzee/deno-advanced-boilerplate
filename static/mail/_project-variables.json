@@ -1,0 +1,18 @@
+{
+  "brandColor": "#1c824f",
+  "accentColor": "#a3de83",
+  "lineBorderColor": "#2F2F2F",
+  "textColor": "#ffffff",
+  "headingColor": "#ffffff",
+  "mutedColor": "#8f8f8f",
+  "linkColor": "#a3de83",
+  "bgColor": "#212125",
+  "contentBgColor": "#212125",
+  "fontFamily": "\"Helvetica Neue\", Arial, sans-serif",
+  "headingFontFamily": "Arial, \"Helvetica Neue\", Helvetica, sans-serif",
+  "headingFontSize": "32px",
+  "bodyFontSize": "16px",
+  "helperFontSize": "14px",
+  "bodyPadding": "40px",
+  "borderRadius": "6px"
+}

@@ -1,0 +1,321 @@
+# Plan: OpenAPI Documentation Pass (Routes → Handlers → Services)
+
+## Goal
+
+Produce a **self-explanatory OpenAPI document** where any reader (frontend dev,
+integrator, auditor) can understand, for every endpoint:
+
+- **What** it does and **why** it exists (purpose),
+- **Who** can call it (auth/permissions),
+- **What it accepts** (params, query, body) — with realistic **examples**, including
+  alternative payloads when an endpoint accepts more than one shape,
+- **What it returns** (success + the meaningful error cases),
+- **How it is grouped** (tags) and **named** (operationId / summary).
+
+The work is driven by reading each route's wiring (`index.ts`), its `createRoute`
+definition, the **handler** it dispatches to, and the **service(s)** the handler
+calls — so descriptions reflect real behavior, not guesses.
+
+---
+
+## Current State (verified 2026-06-25)
+
+| Metric | Value |
+| --- | --- |
+| Route feature directories (`routes/*`) | 32 |
+| Route files (`*.route.ts`) | 68 |
+| `createRoute(...)` operation definitions | 262 |
+| Operations with a `summary:` | ~235 (≈27 missing) |
+| Operations with an operation-level `description:` | ~0 (none in practice) |
+| Operations with an explicit `operationId` | 11 |
+| Operations marked `deprecated` | 0 |
+| `externalDocs` usage | 0 |
+| `example:` occurrences in `models/` schemas | 535 (present but inconsistent) |
+| Model files (`models/**/*.ts`) | 53 |
+
+### How the spec is assembled today
+
+- **Package:** `@hono/zod-openapi@1.4.0` (Hono `4.12.23`, `zod@4.4.3`), OpenAPI `3.0.0`.
+- **Base spec:** `open-api-base.ts` — `info.title` is still the placeholder `"Your API"`,
+  `info.description` is minimal, security schemes (`cookieAuth`, `apiKeyAuth`,
+  `internalToolKeyAuth`) are well documented.
+- **Tags:** centralized in `utils/openapi/tags.ts` (`OpenAPITags`, feature groupings,
+  and `openApiTagsSpec` ordering). Tags currently have **names only — no `description`**.
+- **Routes:** each `routes/<feature>/<aspect>.route.ts` exports `createRoute(...)`
+  objects with `method`, `path`, `summary`, `tags`, `request`, `responses`. Wired in
+  `routes/<feature>/index.ts` via `createRateLimitedApp()` /
+  `openapiWithRateLimit(...)`.
+- **Shared responses:** `utils/openapi/open-api-shared.ts` provides reusable
+  `httpResponse*` error blocks, `ErrorSchema`, `withJsonBody()`, `withDefaultResponses()`.
+- **Schemas/examples:** live in `models/<feature>/*.model.ts` via Zod `.openapi(...)`.
+- **Rendering:** `main.ts` serves the JSON at `GET /docs` (dev exposes everything;
+  prod exposes only public app) and renders Scalar UI at `GET /openapi`. A filter
+  drops tags with no registered routes.
+
+### Gaps to close
+
+1. Endpoint **purpose** is opaque — `summary` is terse, operation-level `description`
+   is absent. There is no narrative of what the endpoint is for.
+2. **Tags have no descriptions**, so the Scalar sidebar groups are unexplained.
+3. **`operationId`** is mostly missing → generated client method names are unstable/ugly.
+4. **Request/response examples** are inconsistent; **multi-shape payloads** (e.g.
+   union/`oneOf` bodies, or endpoints that accept different request variants) are not
+   illustrated with named examples.
+5. Base **`info`** is placeholder text.
+6. ~27 operations lack even a `summary`.
+
+---
+
+## Step 0 — Confirm the `@hono/zod-openapi@1.4.0` feature surface
+
+Before editing, verify exactly which documentation fields the installed version
+supports, so the standard we adopt is real and not aspirational. Confirm against
+the installed package / its `RouteConfig` and `.openapi()` typings:
+
+**Operation-level (inside `createRoute({...})`, passed straight into the OpenAPI
+operation object):**
+
+- `summary` — short one-liner (already used).
+- `description` — **long-form Markdown** explaining purpose, behavior, side effects,
+  permissions. (Primary lever for this task.)
+- `tags` — grouping (already used).
+- `operationId` — stable unique id; drives generated client method names.
+- `deprecated: true` — mark sunset endpoints.
+- `externalDocs: { url, description }` — link to deeper docs (e.g. README sections).
+- `security` — per-operation override of the global security array (e.g. mark a
+  truly public route with `security: []`, or require `internalToolKeyAuth`).
+- `request.headers` / `request.cookies` — document required headers/cookies.
+- `responses[*].description` — per-status human text (already used for errors).
+- `responses[*].headers` — document response headers (e.g. `Set-Cookie`,
+  `Retry-After`, pagination headers).
+
+**Schema-level (`.openapi(...)` on Zod types in `models/`), which feeds request/
+response bodies:**
+
+- `.openapi("ComponentName")` — registers a **named component** (reused, clean refs).
+- `.openapi({ description, example })` on fields.
+- **Whole-schema `example`** and **multiple named `examples`** on a media-type:
+  - For a single canonical body: `content["application/json"].example` or
+    `...schema.openapi({ example: {...} })`.
+  - For **alternative payloads**: media-type `examples: { variantA: { summary, value },
+    variantB: { summary, value } }`. Confirm 1.4.0 passes a media-type-level
+    `examples` map through (OpenAPI 3.0 supports `examples` on a media type).
+- **Multiple accepted shapes** themselves: Zod `z.union([...])` /
+  `z.discriminatedUnion(...)` → renders as `oneOf`. Confirm the discriminator + named
+  examples render correctly in Scalar.
+
+**Deliverable of Step 0:** a short "supported fields" note appended to this plan
+(or a scratch confirmation) so later steps only use confirmed-working fields. If any
+field (e.g. media-type `examples` map) does not pass through cleanly, record the
+workaround (e.g. attach example via `.openapi({ example })` on a union member, or via
+`content` overrides in the route's `responses`/`request`).
+
+---
+
+## Step 1 — Build the route inventory (analysis, no edits)
+
+Create a working inventory (scratch file, e.g. `plans/_openapi-inventory.md`) that,
+for every one of the 262 operations, captures the *real* behavior by tracing the
+stack. Do this **per feature directory** to keep it tractable.
+
+For each feature `routes/<feature>/`:
+
+1. Read `index.ts` to get the **mount path** (cross-reference `main.ts` route mounts,
+   incl. the `/public/*`, `/api`, `/api/internal`, and prefix nuances) and the
+   route→handler mapping + rate-limit posture.
+2. For each `createRoute` in the feature's `*.route.ts` files, record:
+   - `method` + full external path (mount prefix + route path),
+   - current `summary`, tags, request shape (params/query/body schema names),
+     response schema names + status codes,
+   - the **handler** it maps to (`handlers/<feature>/...`),
+   - the **service(s)** the handler calls (`services/<feature>/...`) and, from the
+     service, the **one-sentence true purpose**, key side effects, auth/permission
+     checks, and tenant scoping.
+3. Note anything that needs **multi-example** docs: union/discriminated bodies,
+   endpoints whose behavior branches on a flag/field, or polymorphic responses.
+4. Flag **auth posture**: public (`security: []`), cookie/api-key, super-admin,
+   internal-tool, or rate-limited specifics.
+
+Output columns per operation: `path | method | tag | purpose | auth | inputs |
+outputs | needs-examples? | needs-operationId | notes`.
+
+---
+
+## Step 2 — Define the documentation standard (single source of truth)
+
+Write the conventions all routes must follow (add as a short section to the
+`deno-backend` skill's `references/layer-patterns.md` *or* a new
+`references/openapi-docs.md`, and link it). Standard:
+
+1. **`summary`** — imperative, ≤ ~60 chars ("Create note", "List document folders").
+   Every operation MUST have one.
+2. **`description`** — Markdown, required for every operation. Template:
+   ```
+   <One/two sentence purpose.>
+
+   **Behavior:** <what it does, side effects, async/queued work>
+   **Auth:** <cookie session | API key | super-admin | internal tool | public>
+   **Permissions:** <permission group / ownership checks, if any>
+   **Notes:** <tenant scoping, rate limits, idempotency, pagination, etc.>
+   ```
+3. **`operationId`** — required, stable, `camelCase`, unique across the spec
+   (e.g. `notesList`, `notesCreate`, `documentFoldersBulkMove`). Establish a
+   naming scheme: `<featureCamel><Action>`.
+4. **`tags`** — reuse `OpenAPITags`; add a **`description`** for every tag in
+   `openApiTagsSpec` (see Step 3).
+5. **`deprecated`** — set on any endpoint slated for removal; mention replacement in
+   `description`.
+6. **`security` override** — public endpoints get `security: []`; internal/admin get
+   the right scheme so the "lock" icon is accurate.
+7. **Examples** —
+   - Every request body schema and key response schema carries at least one realistic
+     `example` (prefer registered components with field-level examples in `models/`).
+   - **Multi-shape inputs**: model as `z.discriminatedUnion`/`z.union` and attach a
+     **named `examples` map** (one per variant, each with `summary` + `value`).
+8. **Error responses** — keep using the shared `httpResponse*` blocks; ensure each
+   operation lists the errors it can actually return (don't over- or under-declare).
+
+Also fix the **base spec** (`open-api-base.ts`): real `info.title`,
+`info.description` (overview + auth model + base URL + environments), `contact`,
+`license`, and optionally top-level `externalDocs` pointing at the README.
+
+---
+
+## Step 3 — Enrich tags (`utils/openapi/tags.ts`)
+
+- Add a `description` to each entry in `openApiTagsSpec` (the array is what reaches the
+  spec). Keep names from `OpenAPITags`.
+- Verify every tag used by a route is present, and every listed tag is actually used
+  (the `main.ts` filter drops unused ones, but the source should be consistent).
+- Confirm the feature tag groupings (`OpenAPITagsNotesFeature`,
+  `OpenAPITagsDocumentFeature`) point at sensible tags (note: a few document
+  sub-features currently alias to broad tags — decide whether to split or keep).
+
+---
+
+## Step 4 — Apply documentation per feature (the bulk of the work)
+
+Process feature-by-feature (suggested order: smallest/most-stable first to validate
+the pattern, then large ones). For each feature:
+
+1. Update every `createRoute` with `summary`, `description`, `operationId`, correct
+   `security`, and `deprecated` where relevant — using the Step 1 inventory facts.
+2. Enrich the feature's `models/<feature>/*.model.ts`:
+   - Field-level `description`/`example` on request + response schemas.
+   - Add named `examples` maps for multi-shape payloads identified in Step 1.
+3. Verify the rendered Scalar output for that feature (Step 6).
+4. Check the box below.
+
+**Feature checklist (32 dirs):**
+
+_Auth & identity_
+- [ ] `auth` (challenge, login, logout, magic, passkey, recovery, refresh, register, two-factor)
+- [ ] `user` (+ `user/api-key`)
+- [ ] `user-encryption`
+- [ ] `permissions`
+- [ ] `super-admin`
+
+_Documents domain_
+- [ ] `documents` (+ chunked-upload, bulk, thumbnail-upload)
+- [ ] `documents-sharing`
+- [ ] `documents-public`
+- [ ] `document-folders`
+- [ ] `document-folders-sharing`
+- [ ] `documents-activity-logs`
+- [ ] `documents-comments`
+- [ ] `documents-duplicates`
+- [ ] `documents-metadata-schemas`
+- [ ] `documents-operations`
+- [ ] `documents-stats`
+- [ ] `documents-tags`
+
+_Notes domain_
+- [ ] `notes` (+ events, sharing, tags-attach, versions)
+- [ ] `notes-attachments`
+- [ ] `notes-collections`
+- [ ] `notes-public`
+- [ ] `notes-tags`
+
+_Platform / system_
+- [ ] `notifications`
+- [ ] `environment-config-user`
+- [ ] `media-stream`
+- [ ] `webhooks`
+- [ ] `jobs`
+- [ ] `health`
+- [ ] `hello`
+- [ ] `csp-report`
+- [ ] `debug`
+- [ ] `admin-ui` (cache-visualizer, threat-intelligence, trace-visualizer)
+
+---
+
+## Step 5 — Multi-payload / alternative-input endpoints
+
+From Step 1, take the flagged endpoints and document their variants explicitly:
+
+- Model alternatives as `z.discriminatedUnion("<field>", [...])` (preferred) or
+  `z.union([...])` so the schema renders as `oneOf` with a discriminator.
+- Attach a **named `examples`** map at the media-type level (one example per variant,
+  each with a `summary` and a complete `value`), confirmed working per Step 0.
+- In the operation `description`, briefly enumerate the variants and when to use each.
+
+Likely candidates to inspect first: bulk operations (`*-bulk`, `documents-operations`),
+sharing endpoints (public vs user share), auth flows (passkey/two-factor/magic which
+branch by step), and anything accepting either an id or a token.
+
+---
+
+## Step 6 — Verification
+
+Per feature and again at the end:
+
+```sh
+deno fmt
+deno lint
+deno check main.ts
+deno run --allow-read .agents/skills/deno-backend/scripts/verify_deps.ts
+```
+
+Spec/render checks:
+
+1. Start the dev server and fetch `GET /docs`; assert it is valid JSON and that the
+   newly documented operations carry `summary`, `description`, `operationId`, and
+   `tags`. (A small script can iterate `spec.paths` and assert no operation is missing
+   these fields — turn this into a CI gate.)
+2. Open `GET /openapi` (Scalar) and visually confirm: tag descriptions show, examples
+   render, `oneOf` variants + named examples are selectable, security locks are correct.
+3. Confirm prod-mode `/docs` (public-only app) still builds and only exposes intended
+   public endpoints.
+4. Optionally run the spec through an OpenAPI validator (e.g. Scalar/Redocly CLI) for
+   3.0.0 conformance.
+
+**Proposed CI gate (new):** a `scripts/check-openapi-docs.ts` that loads the document
+via `app.getOpenAPIDocument(openApiBaseSpec)` and fails if any operation lacks
+`summary`/`description`/`operationId`, or if any used tag lacks a description. This
+prevents regression after the pass.
+
+---
+
+## Deliverables
+
+1. `open-api-base.ts` with real `info` + optional `externalDocs`.
+2. `utils/openapi/tags.ts` with per-tag descriptions.
+3. All 262 operations across `routes/**` documented to the Step 2 standard.
+4. Enriched `models/**` schemas (field docs + examples, incl. multi-variant examples).
+5. New `references/openapi-docs.md` (standard) referenced from the skill/AGENTS.
+6. `scripts/check-openapi-docs.ts` CI gate + (optional) `deno task` entry.
+7. This plan kept updated with the feature checklist progress.
+
+## Risks / Notes
+
+- **Behavioral accuracy:** descriptions must come from reading handlers/services, not
+  path guessing — that is the point of Step 1.
+- **Component name collisions:** `.openapi("Name")` registers global components; keep
+  names unique per feature (`NoteCreateRequest`, `DocumentCreateRequest`, …).
+- **Route ordering:** documentation edits must not touch the carefully ordered route
+  registration in `index.ts`/`main.ts` (specific-before-generic). Docs are metadata only.
+- **Prod vs dev exposure:** verify nothing intended to stay private becomes visible via
+  `/docs` after edits.
+- **Scope:** large pass (262 operations). Land it incrementally per feature behind the
+  CI gate rather than one giant change.

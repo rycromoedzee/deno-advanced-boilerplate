@@ -1,0 +1,85 @@
+# Deno specific
+.deno/
+
+# Node.js dependencies (for Drizzle CLI or similar tools)
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+.pnpm-debug.log
+
+# Package manager files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Build output (adjust if you bundle with tools like esbuild, dnt, etc.)
+/dist
+/out
+/build
+
+# Logs and databases
+log/
+*.log
+*.db
+*.sqlite
+
+# Testing
+coverage/
+.nyc_output/
+
+# Deno lint and test cache
+/testdata/
+/.deno_test_cache/
+
+# If you use Deno with tools like Drizzle Kit (Node-based)
+/drizzle/
+/migrations/
+# Uncomment if Drizzle generates local config/output
+# drizzle.config.ts
+
+# Local development
+.dockerignore
+*.tmp
+tmp/
+
+# Custom code-server Docker files
+custom-code-server-*
+.last_compressed_image
+.last_transferred_image
+
+.data/*
+
+*.cursor/
+
+.git
+.data
+.kiro
+admin-ui/node_modules
+*.mp4
+*.log
+reproduce_issue.ts
+test-*.html
+build-and-run.sh
+code-count.sh
+output.txt
+# OpenAPI spec intermediate (generated → admin-ui types)
+openapi.spec.json

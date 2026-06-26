@@ -1,0 +1,205 @@
+/**
+ * @file routes/notes/notes.route.ts
+ * @description Notes route definition
+ */
+import { createRoute, z } from "@deps";
+import {
+  SCHEMA_NOTE_ID,
+  SchemaNoteApiResponse,
+  SchemaNoteCreateRequest,
+  SchemaNoteDetailApiResponse,
+  SchemaNoteListApiResponse,
+  SchemaNoteListQuery,
+  SchemaNoteUpdateRequest,
+} from "@models/notes/note.model.ts";
+import {
+  SchemaNotePutBodyRequest,
+  SchemaNoteVersionApiResponse,
+  SchemaNoteVersionDetailApiResponse,
+} from "@models/notes/note-version.model.ts";
+import {
+  httpResponseBadRequest,
+  httpResponseForbidden,
+  httpResponseInternalServerError,
+  httpResponseNotFound,
+  httpResponseUnauthorized,
+  withJsonBody,
+} from "@utils/openapi/open-api-shared.ts";
+import { OpenAPITagsNotesFeature } from "@utils/openapi/tags.ts";
+
+const tags = [OpenAPITagsNotesFeature.notes];
+const versionTags = [OpenAPITagsNotesFeature.versions];
+
+const idParam = z.object({
+  id: SCHEMA_NOTE_ID.openapi({ param: { name: "id", in: "path" } }),
+});
+
+const idAndVersionParam = z.object({
+  id: SCHEMA_NOTE_ID.openapi({ param: { name: "id", in: "path" } }),
+  versionId: z.string().min(1).openapi({ param: { name: "versionId", in: "path" } }),
+});
+
+export const listNotesRoute = createRoute({
+  method: "get",
+  path: "/",
+  summary: "List notes",
+  tags,
+  request: { query: SchemaNoteListQuery },
+  responses: {
+    200: {
+      description: "OK",
+      content: { "application/json": { schema: SchemaNoteListApiResponse } },
+    },
+    ...httpResponseUnauthorized,
+    ...httpResponseInternalServerError,
+  },
+});
+
+export const createNoteRoute = createRoute({
+  method: "post",
+  path: "/",
+  summary: "Create note",
+  tags,
+  request: { ...withJsonBody(SchemaNoteCreateRequest) },
+  responses: {
+    201: {
+      description: "Created",
+      content: { "application/json": { schema: SchemaNoteApiResponse } },
+    },
+    ...httpResponseBadRequest,
+    ...httpResponseUnauthorized,
+    ...httpResponseForbidden,
+    ...httpResponseInternalServerError,
+  },
+});
+
+export const getNoteRoute = createRoute({
+  method: "get",
+  path: "/{id}",
+  summary: "Get note",
+  tags,
+  request: { params: idParam },
+  responses: {
+    200: { description: "OK", content: { "application/json": { schema: SchemaNoteDetailApiResponse } } },
+    ...httpResponseUnauthorized,
+    ...httpResponseForbidden,
+    ...httpResponseNotFound,
+    ...httpResponseInternalServerError,
+  },
+});
+
+export const updateNoteRoute = createRoute({
+  method: "patch",
+  path: "/{id}",
+  summary: "Update note",
+  tags,
+  request: { params: idParam, ...withJsonBody(SchemaNoteUpdateRequest) },
+  responses: {
+    200: { description: "OK", content: { "application/json": { schema: SchemaNoteApiResponse } } },
+    ...httpResponseBadRequest,
+    ...httpResponseUnauthorized,
+    ...httpResponseForbidden,
+    ...httpResponseNotFound,
+    ...httpResponseInternalServerError,
+  },
+});
+
+export const archiveNoteRoute = createRoute({
+  method: "patch",
+  path: "/{id}/archive",
+  summary: "Archive note",
+  tags,
+  request: { params: idParam },
+  responses: {
+    200: { description: "OK", content: { "application/json": { schema: SchemaNoteApiResponse } } },
+    ...httpResponseUnauthorized,
+    ...httpResponseForbidden,
+    ...httpResponseNotFound,
+    ...httpResponseInternalServerError,
+  },
+});
+
+export const restoreNoteRoute = createRoute({
+  method: "patch",
+  path: "/{id}/restore",
+  summary: "Restore note",
+  tags,
+  request: { params: idParam },
+  responses: {
+    200: { description: "OK", content: { "application/json": { schema: SchemaNoteApiResponse } } },
+    ...httpResponseUnauthorized,
+    ...httpResponseForbidden,
+    ...httpResponseNotFound,
+    ...httpResponseInternalServerError,
+  },
+});
+
+export const deleteNoteRoute = createRoute({
+  method: "delete",
+  path: "/{id}",
+  summary: "Hard-delete note",
+  tags,
+  request: { params: idParam },
+  responses: {
+    204: { description: "No Content" },
+    ...httpResponseUnauthorized,
+    ...httpResponseForbidden,
+    ...httpResponseNotFound,
+    ...httpResponseInternalServerError,
+  },
+});
+
+export const putNoteBodyRoute = createRoute({
+  method: "put",
+  path: "/{id}/body",
+  summary: "Save (debounced) note body",
+  tags: versionTags,
+  request: { params: idParam, ...withJsonBody(SchemaNotePutBodyRequest) },
+  responses: {
+    200: {
+      description: "OK",
+      content: { "application/json": { schema: SchemaNoteVersionApiResponse } },
+    },
+    ...httpResponseBadRequest,
+    ...httpResponseUnauthorized,
+    ...httpResponseForbidden,
+    ...httpResponseNotFound,
+    ...httpResponseInternalServerError,
+  },
+});
+
+export const listNoteVersionsRoute = createRoute({
+  method: "get",
+  path: "/{id}/versions",
+  summary: "List note versions",
+  tags: versionTags,
+  request: { params: idParam },
+  responses: {
+    200: {
+      description: "OK",
+      content: { "application/json": { schema: z.array(SchemaNoteVersionApiResponse) } },
+    },
+    ...httpResponseUnauthorized,
+    ...httpResponseForbidden,
+    ...httpResponseNotFound,
+    ...httpResponseInternalServerError,
+  },
+});
+
+export const getNoteVersionRoute = createRoute({
+  method: "get",
+  path: "/{id}/versions/{versionId}",
+  summary: "Get note version detail (with ciphertext)",
+  tags: versionTags,
+  request: { params: idAndVersionParam },
+  responses: {
+    200: {
+      description: "OK",
+      content: { "application/json": { schema: SchemaNoteVersionDetailApiResponse } },
+    },
+    ...httpResponseUnauthorized,
+    ...httpResponseForbidden,
+    ...httpResponseNotFound,
+    ...httpResponseInternalServerError,
+  },
+});

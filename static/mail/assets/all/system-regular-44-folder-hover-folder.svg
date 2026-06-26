@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="25" height="24" fill="none" viewBox="0 0 25 24">
+  <g clip-path="url(#RTmv195ijta)">
+    <path
+      stroke="#fff"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="1.5"
+      d="M21.75 8.75v9.5c0 .55-.45 1-1 1H4.25c-.55 0-1-.45-1-1V4.75H10l1.5 3h9.25c.55 0 1 .45 1 1"
+    />
+  </g>
+  <defs><clipPath id="RTmv195ijta"><path fill="#fff" d="M.5 0h24v24H.5z" /></clipPath></defs>
+</svg>

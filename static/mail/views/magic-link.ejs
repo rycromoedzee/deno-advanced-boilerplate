@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="format-detection" content="date=no">
+  <meta name="format-detection" content="address=no">
+  <meta name="format-detection" content="email=no">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="x-apple-disable-message-reformatting">
+  <title><%= t("magic-link.subject") %></title>
+  <!--[if (gte mso 9)|(IE)]>
+    <xml>
+     <o:OfficeDocumentSettings>
+      <o:AllowPNG/>
+      <o:PixelsPerInch>96</o:PixelsPerInch>
+     </o:OfficeDocumentSettings>
+    </xml>
+    <![endif]-->
+  <!--[if gte mso 9]>
+    <style>
+    .hero-bg {
+      background-image: url(assets/hero_lines-color.png) !important;
+      background-position: center top !important;
+      background-repeat: no-repeat !important;
+    }
+    </style>
+    <![endif]-->
+</head>
+
+<body style="margin:0;padding:0;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
+    <tbody>
+      <%- include('../partials/preheader', { preheaderText: t("magic-link.subject") }) %>
+      <%- include('../partials/logo'); %>
+      <tr>
+        <td style="font-size:0!important;line-height:100%;background-color:<%= vars.bgColor %>;padding-left:16px;padding-right:16px;" align="center">
+          <!--[if mso]>
+            <table role="presentation" width="608" border="0" cellspacing="0" cellpadding="0" align="center">
+            <tbody>
+            <tr>
+            <td align="left">
+            <![endif]-->
+          <table role="presentation" width="608" cellspacing="0" cellpadding="0" border="0" style="width:100%;max-width:608px;">
+            <tbody>
+              <tr>
+                <td style="font-size:0!important;line-height:100%;background-color:<%= vars.brandColor %>;background-image:url(assets/hero_lines-color.png);background-position:50% 0;background-repeat:no-repeat;background-size:contain;border-radius:<%= vars.borderRadius %>;padding-left:32px;padding-right:32px;padding-top:32px;padding-bottom:32px;" align="center" class="hero-bg">
+
+                  <!-- Icon -->
+                  <table style="padding-top:24px;" role="presentation" align="center" cellspacing="0" cellpadding="0" border="0">
+                    <tbody>
+                      <%- include('../partials/notification-main-icon', {
+                            imgSrc: 'assets/auth-key.gif',
+                            imgAlt: 'Shield Check Icon'
+                          }) %>
+                    </tbody>
+                  </table>
+
+                  <!-- Heading -->
+                  <h1 style="font-family:<%= vars.headingFontFamily %>;word-wrap:break-word;font-weight:700;font-size:<%= vars.headingFontSize %>;line-height:48px;color:<%= vars.headingColor %>;margin-top:16px;margin-bottom:8px;"><%= t("magic-link.header") %></h1>
+
+                  <!-- Body text — capped at 368px to match the screenshot column width -->
+                  <p style="font-family:<%= vars.fontFamily %>;font-size:<%= vars.bodyFontSize %>;line-height:24px;color:<%= vars.textColor %>;margin-top:0;margin-bottom:8px;max-width:368px;">Hello <%= fullName %>,</p>
+
+                  <p style="font-family:<%= vars.fontFamily %>;font-size:<%= vars.bodyFontSize %>;line-height:24px;color:<%= vars.textColor %>;margin-top:0;margin-bottom:32px;max-width:368px;"><%= t("magic-link.body") %></p>
+
+                  <!-- Sign-in button inside the card -->
+                  <table role="presentation" align="center" cellspacing="0" cellpadding="0" border="0" style="transition:.15s ease-in;">
+                    <tbody>
+                      <tr>
+                        <td style="font-size:18px;line-height:27px;vertical-align:top;" align="center">
+                          <a href="<%= loginURL %>" style="padding:14px 32px;font-family:<%= vars.headingFontFamily %>;border-radius:56px;word-break:break-word;font-weight:700;color:<%= vars.textColor %>;text-decoration:none;display:block;background-color:<%= vars.bgColor %>;"><span><%= t("magic-link.button") %></span></a>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+
+                  <!-- White separator -->
+                  <table role="presentation" align="center" width="184" cellspacing="0" cellpadding="0" border="0">
+                    <tbody>
+                      <tr>
+                        <td style="font-size:0!important;line-height:100%;padding-top:24px;border-bottom:4px solid #ffffff;">&nbsp;</td>
+                      </tr>
+                    </tbody>
+                  </table>
+
+                  <!-- Email reference -->
+                  <p style="font-family:<%= vars.fontFamily %>;font-size:<%= vars.helperFontSize %>;line-height:21px;color:<%= vars.textColor %>;margin-top:24px;margin-bottom:8px;"><%= t("magic-link.for-reference") %></p>
+                  <h4 style="font-family:<%= vars.headingFontFamily %>;word-break:break-word;font-weight:700;font-size:<%= vars.bodyFontSize %>;line-height:24px;color:<%= vars.textColor %>;margin-top:0;margin-bottom:0;">
+                    <a href="mailto:<%= email %>" style="color:<%= vars.textColor %>;text-decoration:none;"><span><%= email %></span></a>
+                  </h4>
+
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <!--[if mso]>
+            </td>
+            </tr>
+            </table>
+            <![endif]-->
+        </td>
+      </tr>
+      <tr>
+        <td style="background-color:<%= vars.bgColor %>;font-size:16px;line-height:16px;height:16px;">&nbsp;</td>
+      </tr>
+
+      <%- include('../partials/footer'); %>
+    </tbody>
+  </table>
+</body>
+
+</html>
