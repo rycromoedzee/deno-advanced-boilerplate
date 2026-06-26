@@ -4,6 +4,8 @@ A multi-tenant, security-first backend boilerplate built with **Deno + Hono + Dr
 production-shaped API scaffold intended as a starting point for security-conscious multi-tenant services — the kind of work that is normally
 rebuilt from scratch on every new project is already wired up, hardened, and documented here.
 
+A scaled back version of a self hosted application I have been making for testing encryption and auth. Built out an agent skill on top of the existing project and had it reverse engineer the logic into what is now this repo.
+
 The defining design choice is **one database per tenant**: each environment (the tenant, identified by an `environmentId` CUID2 derived
 server-side from a validated JWT or API key) gets its own isolated database, while a global database holds the tenant registry, user
 records, and encrypted tenant-DB credentials. Every layer — caching, backups, jobs, tracing — is tenant-aware by construction.
